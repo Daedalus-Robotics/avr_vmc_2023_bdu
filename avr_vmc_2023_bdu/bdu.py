@@ -25,7 +25,7 @@ class BDUNode(Node):
         )
         self.set_servo_client = self.create_client(
             SetServo,
-            '/pcc/set_position',
+            '/servo/set_position',
         )
 
         self.finish_timer = self.create_timer(
