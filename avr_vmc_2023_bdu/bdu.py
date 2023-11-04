@@ -18,8 +18,6 @@ class BDUNode(Node):
         self.min_value = self.get_parameter('min_value').value
         self.servo_num = self.get_parameter('servo_num').value
 
-        self.set_servo(False)
-
         self.trigger_service = self.create_service(
             Trigger,
             'trigger',
@@ -35,6 +33,8 @@ class BDUNode(Node):
             timer_period_sec=self.hold_duration,
         )
         self.finish_timer.cancel()
+
+        self.set_servo(False)
 
     def trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         self.finish_timer.cancel()
