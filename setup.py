@@ -19,7 +19,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'bdu_node = avr_vmc_2023_bdu.bdu:main',
+            'bdu_trigger_node = avr_vmc_2023_bdu.bdu_trigger:main',
         ],
     },
 )
