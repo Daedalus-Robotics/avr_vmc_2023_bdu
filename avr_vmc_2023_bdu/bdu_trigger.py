@@ -102,11 +102,15 @@ class BDUTriggerNode(Node):
         return self.set_servo_client.call_async(servo_request)
 
 
-async def main() -> None:
+async def main_async() -> None:
     rclpy.init()
     node = BDUTriggerNode()
     rclpy.spin(node)
 
 
+def main() -> None:
+    asyncio.run(main_async())
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
