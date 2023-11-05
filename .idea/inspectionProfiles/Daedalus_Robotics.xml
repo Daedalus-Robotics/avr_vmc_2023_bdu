@@ -27,6 +27,9 @@
     <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredIdentifiers">
         <list>
+          <option value="avr_pcc_2023_interfaces.srv._set_servo.SetServo.Request" />
+          <option value="avr_pcc_2023_interfaces.srv._set_servo.SetServo.Response" />
+          <option value="std_srvs.srv._trigger.Trigger.Request" />
           <option value="std_srvs.srv._trigger.Trigger.Response" />
         </list>
       </option>
