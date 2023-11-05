@@ -83,7 +83,10 @@ class BDUTriggerNode(Node):
         except TimeoutError:
             self.get_logger().warn('Failed to call service to finish drop. Retrying...')
         else:
-            self.finish_timer.cancel()
+            if not servo_response.success:
+                self.get_logger().warn('Failed set servo to finish drop. Retrying...')
+            else:
+                self.finish_timer.cancel()
 
     def set_servo(self, state: bool) -> rclpy.Future:
         """
