@@ -1,4 +1,4 @@
-import asyncio
+from threading import Event
 
 import rclpy
 from rclpy.node import Node
@@ -46,7 +46,7 @@ class BDUTriggerNode(Node):
             if not setup_done:
                 future.cancel()
 
-    async def trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
+    def trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         """
         The trigger service callback.
         Calls the servo service to drop, then starts a timer to finish the drop.
@@ -57,36 +57,46 @@ class BDUTriggerNode(Node):
 
         :return: The updated response object.
         """
+        future_done = Event()
         future = self.set_servo(True)
-        try:
-            servo_response = await asyncio.wait_for(future, 2)
-        except TimeoutError:
-            response.success = False
-            response.message = 'No response from servo service'
-            self.get_logger().warn('Failed to call service to start drop')
-        else:
+        future.add_done_callback(lambda: future_done.set())
+
+        if future_done.wait(1):
+            servo_response = future.result()
+
             response.success = servo_response.success
             response.message = 'Success' if servo_response.success else 'Failed'
 
             self.finish_timer.reset()
+        else:
+            future.cancel()
+
+            response.success = False
+            response.message = 'No response from servo service'
+            self.get_logger().warn('Failed to call service to start drop')
 
         return response
 
-    async def finish(self) -> None:
+    def finish(self) -> None:
         """
         This method is used to finish the task by setting the servo to False, canceling the finish timer,
         and handling any timeouts that may occur.
         """
+        future_done = Event()
         future = self.set_servo(False)
-        try:
-            servo_response = await asyncio.wait_for(future, 2)
-        except TimeoutError:
-            self.get_logger().warn('Failed to call service to finish drop. Retrying...')
-        else:
+        future.add_done_callback(lambda: future_done.set())
+
+        if future_done.wait(1):
+            servo_response = future.result()
+
             if not servo_response.success:
                 self.get_logger().warn('Failed set servo to finish drop. Retrying...')
             else:
                 self.finish_timer.cancel()
+        else:
+            future.cancel()
+
+            self.get_logger().warn('Failed to call service to finish drop. Retrying...')
 
     def set_servo(self, state: bool) -> rclpy.Future:
         """
@@ -102,14 +112,11 @@ class BDUTriggerNode(Node):
         return self.set_servo_client.call_async(servo_request)
 
 
-async def main_async() -> None:
+def main() -> None:
     rclpy.init()
     node = BDUTriggerNode()
-    rclpy.spin(node)
-
-
-def main() -> None:
-    asyncio.run(main_async())
+    executor = rclpy.executors.MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
 
 if __name__ == '__main__':
