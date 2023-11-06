@@ -43,9 +43,10 @@ class BDUTriggerNode(Node):
             self.get_logger().error('No response from servo service. Retrying...', skip_first=True)
             future = self.set_servo(False)
             rclpy.spin_until_future_complete(self, future, timeout_sec=2)
-            setup_done = future.done()
-            if not setup_done:
-                future.cancel()
+            setup_done = True
+            # setup_done = future.done()
+            # if not setup_done:
+            #     future.cancel()
 
     def trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         """
@@ -70,8 +71,9 @@ class BDUTriggerNode(Node):
             # response.message = 'Success' if servo_response.success else 'Failed'
 
             self.finish_timer.reset()
+            self.get_logger().info('Reset the timer')
         else:
-            future.cancel()
+            # future.cancel()
 
             response.success = False
             response.message = 'No response from servo service'
@@ -96,8 +98,9 @@ class BDUTriggerNode(Node):
             #     self.get_logger().warn('Failed set servo to finish drop. Retrying...')
             # else:
             self.finish_timer.cancel()
+            self.get_logger().info('Cancel the timer')
         else:
-            future.cancel()
+            # future.cancel()
 
             self.get_logger().warn('Failed to call service to finish drop. Retrying...')
 
