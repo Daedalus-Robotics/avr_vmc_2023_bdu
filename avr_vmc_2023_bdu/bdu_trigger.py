@@ -1,4 +1,5 @@
 from threading import Event
+from time import sleep
 
 import rclpy
 from rclpy.node import Node
@@ -59,13 +60,14 @@ class BDUTriggerNode(Node):
         """
         future_done = Event()
         future = self.set_servo(True)
-        future.add_done_callback(lambda: future_done.set())
+        # future.add_done_callback(lambda: future_done.set())
+        future_done.set()
 
         if future_done.wait(1):
-            servo_response = future.result()
+            # servo_response = future.result()
 
-            response.success = servo_response.success
-            response.message = 'Success' if servo_response.success else 'Failed'
+            # response.success = servo_response.success
+            # response.message = 'Success' if servo_response.success else 'Failed'
 
             self.finish_timer.reset()
         else:
@@ -84,15 +86,16 @@ class BDUTriggerNode(Node):
         """
         future_done = Event()
         future = self.set_servo(False)
-        future.add_done_callback(lambda: future_done.set())
+        # future.add_done_callback(lambda: future_done.set())
+        future_done.set()
 
         if future_done.wait(1):
-            servo_response = future.result()
+            # servo_response = future.result()
 
-            if not servo_response.success:
-                self.get_logger().warn('Failed set servo to finish drop. Retrying...')
-            else:
-                self.finish_timer.cancel()
+            # if not servo_response.success:
+            #     self.get_logger().warn('Failed set servo to finish drop. Retrying...')
+            # else:
+            self.finish_timer.cancel()
         else:
             future.cancel()
 
