@@ -1,4 +1,4 @@
-from threading import Event
+from threading import Thread
 from time import sleep
 
 import rclpy
@@ -32,11 +32,11 @@ class BDUTriggerNode(Node):
                 '/servo/set_position',
         )
 
-        self.finish_timer = self.create_timer(
-                callback=self.finish,
-                timer_period_sec=self.hold_duration,
-        )
-        self.finish_timer.cancel()
+        # self.finish_timer = self.create_timer(
+        #         callback=self.finish,
+        #         timer_period_sec=self.hold_duration,
+        # )
+        # self.finish_timer.cancel()
 
         setup_done = False
         while not setup_done:
@@ -49,60 +49,67 @@ class BDUTriggerNode(Node):
             #     future.cancel()
 
     def trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
-        """
-        The trigger service callback.
-        Calls the servo service to drop, then starts a timer to finish the drop.
-
-        :param _: The request object.
-        This parameter is ignored as it has no data.
-        :param response: The response object to be updated based on the servo service response.
-
-        :return: The updated response object.
-        """
-        future_done = Event()
-        future = self.set_servo(True)
-        # future.add_done_callback(lambda: future_done.set())
-        future_done.set()
-
-        if future_done.wait(1):
-            # servo_response = future.result()
-
-            # response.success = servo_response.success
-            # response.message = 'Success' if servo_response.success else 'Failed'
-
-            self.finish_timer.reset()
-            self.get_logger().info('Reset the timer')
-        else:
-            # future.cancel()
-
-            response.success = False
-            response.message = 'No response from servo service'
-            self.get_logger().warn('Failed to call service to start drop')
-
+        Thread(target=self.worker, daemon=True).start()
         return response
 
-    def finish(self) -> None:
-        """
-        This method is used to finish the task by setting the servo to False, canceling the finish timer,
-        and handling any timeouts that may occur.
-        """
-        future_done = Event()
-        future = self.set_servo(False)
-        # future.add_done_callback(lambda: future_done.set())
-        future_done.set()
-
-        if future_done.wait(1):
-            # servo_response = future.result()
-
-            # if not servo_response.success:
-            #     self.get_logger().warn('Failed set servo to finish drop. Retrying...')
-            # else:
-            self.finish_timer.cancel()
-            self.get_logger().info('Cancel the timer')
-        else:
-            # future.cancel()
-
-            self.get_logger().warn('Failed to call service to finish drop. Retrying...')
+    def worker(self) -> None:
+        self.set_servo(True)
+        sleep(self.hold_duration + 0.5)
+        self.set_servo(False)
+    #     """
+    #     The trigger service callback.
+    #     Calls the servo service to drop, then starts a timer to finish the drop.
+    #
+    #     :param _: The request object.
+    #     This parameter is ignored as it has no data.
+    #     :param response: The response object to be updated based on the servo service response.
+    #
+    #     :return: The updated response object.
+    #     """
+    #     future_done = Event()
+    #     future = self.set_servo(True)
+    #     # future.add_done_callback(lambda: future_done.set())
+    #     future_done.set()
+    #
+    #     if future_done.wait(1):
+    #         # servo_response = future.result()
+    #
+    #         # response.success = servo_response.success
+    #         # response.message = 'Success' if servo_response.success else 'Failed'
+    #
+    #         self.finish_timer.reset()
+    #         self.get_logger().info('Reset the timer')
+    #     else:
+    #         # future.cancel()
+    #
+    #         response.success = False
+    #         response.message = 'No response from servo service'
+    #         self.get_logger().warn('Failed to call service to start drop')
+    #
+    #     return response
+    #
+    # def finish(self) -> None:
+    #     """
+    #     This method is used to finish the task by setting the servo to False, canceling the finish timer,
+    #     and handling any timeouts that may occur.
+    #     """
+    #     future_done = Event()
+    #     future = self.set_servo(False)
+    #     # future.add_done_callback(lambda: future_done.set())
+    #     future_done.set()
+    #
+    #     if future_done.wait(1):
+    #         # servo_response = future.result()
+    #
+    #         # if not servo_response.success:
+    #         #     self.get_logger().warn('Failed set servo to finish drop. Retrying...')
+    #         # else:
+    #         self.finish_timer.cancel()
+    #         self.get_logger().info('Cancel the timer')
+    #     else:
+    #         # future.cancel()
+    #
+    #         self.get_logger().warn('Failed to call service to finish drop. Retrying...')
 
     def set_servo(self, state: bool) -> rclpy.Future:
         """
