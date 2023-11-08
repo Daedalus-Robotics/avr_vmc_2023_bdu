@@ -11,8 +11,8 @@ class BDUTriggerNode(Node):
     def __init__(self) -> None:
         super().__init__('bdu_trigger', namespace='bdu')
 
-        self.declare_parameter('hold_duration', 1000)
-        self.declare_parameter('max_value', 175)
+        self.declare_parameter('hold_duration', 1.0)
+        self.declare_parameter('max_value', 255)
         self.declare_parameter('min_value', 0)
         self.declare_parameter('servo_num', 0)
 
