@@ -17,9 +17,9 @@ class BDUTriggerNode(Node):
         self.declare_parameter('servo_num', 0)
 
         self.hold_duration = self.get_parameter('hold_duration').value
-        self.max_value = self.get_parameter('max_value').value
-        self.min_value = self.get_parameter('min_value').value
-        self.servo_num = self.get_parameter('servo_num').value
+        self.max_value = int(self.get_parameter('max_value').value)
+        self.min_value = int(self.get_parameter('min_value').value)
+        self.servo_num = int(self.get_parameter('servo_num').value)
 
         # noinspection PyTypeChecker
         self.trigger_service = self.create_service(
