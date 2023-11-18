@@ -12,7 +12,7 @@ class BDUTriggerNode(Node):
         super().__init__('bdu_trigger', namespace='bdu')
 
         self.declare_parameter('hold_duration', 1.0)
-        self.declare_parameter('stage', 50)
+        self.declare_parameter('stage_length', 50)
         self.declare_parameter('stage_count', 4)
         self.declare_parameter('min_value', 0)
         self.declare_parameter('servo_num', 0)
