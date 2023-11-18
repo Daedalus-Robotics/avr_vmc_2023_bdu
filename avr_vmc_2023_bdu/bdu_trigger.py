@@ -23,6 +23,9 @@ class BDUTriggerNode(Node):
         self.min_value = int(self.get_parameter('min_value').value)
         self.servo_num = int(self.get_parameter('servo_num').value)
 
+        self.prev_future: rclpy.Future = rclpy.Future()
+        self.current_stage: int = 0
+
         self.full_trigger_service = self.create_service(
                 Trigger,
                 'full_trigger',
@@ -53,9 +56,6 @@ class BDUTriggerNode(Node):
         self.set_servo_client.wait_for_service()
         future = self.set_servo(False)
         rclpy.spin_until_future_complete(self, future, timeout_sec=5)
-
-        self.prev_future: rclpy.Future = rclpy.Future()
-        self.current_stage: int = 0
 
     def full_trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         self.prev_future.cancel()
