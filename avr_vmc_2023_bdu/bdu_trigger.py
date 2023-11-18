@@ -88,7 +88,6 @@ class BDUTriggerNode(Node):
 
     def reset(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         self.prev_future.cancel()
-        self.finish_timer.cancel()
 
         self.current_stage = 0
 
@@ -100,8 +99,10 @@ class BDUTriggerNode(Node):
         return response
 
     def finish(self) -> None:
-        self.get_logger().info('Resetting')
         self.prev_future.cancel()
+        self.finish_timer.cancel()
+
+        self.get_logger().info('Resetting')
         self.prev_future = self.set_servo(0)
 
     def set_servo(self, state: int) -> rclpy.Future:
