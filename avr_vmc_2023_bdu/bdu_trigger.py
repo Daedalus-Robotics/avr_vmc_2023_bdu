@@ -18,7 +18,7 @@ class BDUTriggerNode(Node):
         self.declare_parameter('servo_num', 0)
 
         self.hold_duration = self.get_parameter('hold_duration').value
-        self.stage = int(self.get_parameter('stage').value)
+        self.stage_length = int(self.get_parameter('stage_length').value)
         self.stage_count = int(self.get_parameter('stage_count').value)
         self.min_value = int(self.get_parameter('min_value').value)
         self.servo_num = int(self.get_parameter('servo_num').value)
@@ -63,7 +63,7 @@ class BDUTriggerNode(Node):
 
         future = self.set_servo(self.current_stage)
         self.prev_future = future
-        future.add_done_callback(lambda: self.finish_timer.reset())
+        future.add_done_callback(lambda _: self.finish_timer.reset())
 
         response.message = 'full triggered. Resetting...'
         response.success = True
@@ -76,7 +76,7 @@ class BDUTriggerNode(Node):
         future = self.set_servo(self.current_stage)
         self.prev_future = future
         if self.current_stage == self.stage_count:
-            future.add_done_callback(lambda: self.finish_timer.reset())
+            future.add_done_callback(lambda _: self.finish_timer.reset())
             response.message = 'Last stage triggered. Resetting...'
         else:
             response.message = 'Triggered stage'
@@ -106,7 +106,7 @@ class BDUTriggerNode(Node):
 
         servo_request = SetServo.Request()
         servo_request.servo_num = self.servo_num
-        servo_request.value = (self.stage_count * state) + self.min_value
+        servo_request.value = (self.stage_length * state) + self.min_value
         return self.set_servo_client.call_async(servo_request)
 
 
