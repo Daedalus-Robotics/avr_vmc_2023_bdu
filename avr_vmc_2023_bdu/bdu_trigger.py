@@ -72,12 +72,12 @@ class BDUTriggerNode(Node):
 
     def trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         self.prev_future.cancel()
-        self.current_stage = (self.current_stage + 1) % (self.stage_count + 1)
+        self.current_stage += 1
 
         self.get_logger().info('Staged Trigger started')
         future = self.set_servo(self.current_stage)
         self.prev_future = future
-        if self.current_stage == self.stage_count:
+        if self.current_stage >= self.stage_count:
             future.add_done_callback(lambda _: self.finish_timer.reset())
             response.message = 'Last stage triggered. Resetting...'
         else:
@@ -101,6 +101,8 @@ class BDUTriggerNode(Node):
     def finish(self) -> None:
         self.prev_future.cancel()
         self.finish_timer.cancel()
+
+        self.current_stage = 0
 
         self.get_logger().info('Resetting')
         self.prev_future = self.set_servo(0)
