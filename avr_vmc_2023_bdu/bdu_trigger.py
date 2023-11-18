@@ -59,10 +59,10 @@ class BDUTriggerNode(Node):
 
     def full_trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         self.prev_future.cancel()
-        self.current_stage = self.stage_count + 1
+        self.current_stage = self.stage_count
 
         self.get_logger().info('Full Trigger started')
-        future = self.set_servo(self.current_stage)
+        future = self.set_servo(self.stage_count)
         self.prev_future = future
         future.add_done_callback(lambda _: self.finish_timer.reset())
 
@@ -108,7 +108,7 @@ class BDUTriggerNode(Node):
         self.prev_future = self.set_servo(0)
 
     def set_servo(self, state: int) -> rclpy.Future:
-        state = min(self.stage_count + 1, max(0, state))
+        state = min(self.stage_count, max(0, state))
 
         self.get_logger().info(f'Setting servo to {state}')
 
