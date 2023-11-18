@@ -49,7 +49,7 @@ class BDUTriggerNode(Node):
         )
         self.finish_timer.cancel()
 
-        self.get_logger().error('Waiting for servo set_position service...')
+        self.get_logger().info('Waiting for servo set_position service...')
         self.set_servo_client.wait_for_service()
         future = self.set_servo(False)
         rclpy.spin_until_future_complete(self, future, timeout_sec=5)
@@ -61,6 +61,7 @@ class BDUTriggerNode(Node):
         self.prev_future.cancel()
         self.current_stage = self.stage_count + 1
 
+        self.get_logger().info('Full Trigger started')
         future = self.set_servo(self.current_stage)
         self.prev_future = future
         future.add_done_callback(lambda _: self.finish_timer.reset())
@@ -73,6 +74,7 @@ class BDUTriggerNode(Node):
         self.prev_future.cancel()
         self.current_stage = (self.current_stage + 1) % (self.stage_count + 1)
 
+        self.get_logger().info('Staged Trigger started')
         future = self.set_servo(self.current_stage)
         self.prev_future = future
         if self.current_stage == self.stage_count:
@@ -90,7 +92,7 @@ class BDUTriggerNode(Node):
 
         self.current_stage = 0
 
-        self.prev_future.cancel()
+        self.get_logger().info('Resetting')
         self.prev_future = self.set_servo(0)
 
         response.success = True
@@ -98,11 +100,14 @@ class BDUTriggerNode(Node):
         return response
 
     def finish(self) -> None:
+        self.get_logger().info('Resetting')
         self.prev_future.cancel()
         self.prev_future = self.set_servo(0)
 
     def set_servo(self, state: int) -> rclpy.Future:
         state = min(self.stage_count + 1, max(0, state))
+
+        self.get_logger().info(f'Setting servo to {state}')
 
         servo_request = SetServo.Request()
         servo_request.servo_num = self.servo_num
