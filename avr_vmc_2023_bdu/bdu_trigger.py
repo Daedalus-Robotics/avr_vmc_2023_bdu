@@ -57,6 +57,8 @@ class BDUTriggerNode(Node):
         future = self.set_servo(False)
         rclpy.spin_until_future_complete(self, future, timeout_sec=5)
 
+        self.get_logger().info('Started')
+
     def full_trigger(self, _: Trigger.Request, response: Trigger.Response) -> Trigger.Response:
         self.prev_future.cancel()
         self.current_stage = self.stage_count
