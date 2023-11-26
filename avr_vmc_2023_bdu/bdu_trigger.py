@@ -16,12 +16,14 @@ class BDUTriggerNode(Node):
         self.declare_parameter('stage_count', 4)
         self.declare_parameter('min_value', 0)
         self.declare_parameter('servo_num', 0)
+        self.declare_parameter('invert', False)
 
         self.hold_duration = self.get_parameter('hold_duration').value
         self.stage_length = int(self.get_parameter('stage_length').value)
         self.stage_count = int(self.get_parameter('stage_count').value)
         self.min_value = int(self.get_parameter('min_value').value)
         self.servo_num = int(self.get_parameter('servo_num').value)
+        self.invert = bool(self.get_parameter('invert').value)
 
         self.prev_future: rclpy.Future = rclpy.Future()
         self.current_stage: int = 0
@@ -117,6 +119,8 @@ class BDUTriggerNode(Node):
         servo_request = SetServo.Request()
         servo_request.servo_num = self.servo_num
         servo_request.value = (self.stage_length * state) + self.min_value
+        if self.invert:
+            servo_request.value = 255 - servo_request.value
         return self.set_servo_client.call_async(servo_request)
 
 
